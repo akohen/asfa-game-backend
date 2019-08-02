@@ -5,7 +5,7 @@ const datastore = new Datastore();
 async function listPlayers(_, args) {
   const query = datastore.createQuery('Player');
   const [entities] = await datastore.runQuery(query);
-  if (args.canTradeWith) {
+  if (args.canInteractWith) {
     return entities.filter(e => e[Datastore.KEY].id !== args.canInteractWith);
   }
   return entities;
