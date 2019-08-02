@@ -16,28 +16,42 @@ const game = {
   id: 'test',
   nextTurn: 1000,
   points: [3, 4, 5],
-  player: players[0],
 };
 
 const resolvers = {
   Query: {
     players: () => players,
-    status: () => game,
+    status: (_, { player }) => {
+      const playerEntity = players.find(p => p.id === player);
+      if (!playerEntity) throw new Error('Player Unknown');
+      return { ...game, player: playerEntity };
+    },
   },
 
   Mutation: {
     signup: (_, args) => {
       const newPlayer = {
+        id: Math.random().toString(36).substring(2),
         name: args.name,
         score: 0,
-        secret: Math.random().toString(36).substring(7),
+        secret: args.secret,
+        units: [0, 2, 5],
+        invite: false,
       };
       players.push(newPlayer);
       return newPlayer;
     },
-    interact: (_, args) => { console.log(args); players[0].invite = true; return players[0]; },
+
+    interact: (_, args) => {
+      const playerEntity = players.find(p => p.id === args.from);
+      if (!playerEntity) throw new Error('Player Unknown');
+      console.log(args);
+      playerEntity.invite = true; return playerEntity;
+    },
+
     cancel: (_, { from }) => {
-      const playerEntity = players.find(p => p.name === from);
+      const playerEntity = players.find(p => p.id === from);
+      if (!playerEntity) throw new Error('Player Unknown');
       playerEntity.invite = false;
       return playerEntity;
     },

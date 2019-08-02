@@ -5,7 +5,6 @@ type Player {
   id: String!
   name: String
   score: Int
-  secret: String
   units: [Int]
   invite: Boolean
 }
@@ -19,13 +18,13 @@ type Game {
 
 type Query {
   players(canTradeWith: String): [Player]
-  status(player: String): Game
+  status(player: String!): Game
 }
 
 type Mutation {
   interact(from: String!, to: String!, unit: Int!) : Player
   cancel(from: String!) : Player
-  signup(name: String) : Player
+  signup(name: String!, secret: String!) : Player
 }
 `;
 
