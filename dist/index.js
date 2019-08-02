@@ -12,7 +12,10 @@ const server = new _apolloServer.ApolloServer({
   typeDefs: _schema.default,
   resolvers: _resolvers.default
 });
-server.listen().then(({
+const port = process.env.PORT || 8080;
+server.listen({
+  port
+}).then(({
   url
 }) => {
   console.log(`🚀  Server ready at ${url}`);
