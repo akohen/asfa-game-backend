@@ -11,13 +11,12 @@ type Player {
 
 type Game {
   id: String!
-  nextTurn: Int
   points: [Int]
   player: Player
 }
 
 type Query {
-  players(canTradeWith: String): [Player]
+  players(canInteractWith: String): [Player]
   status(player: String!): Game
 }
 

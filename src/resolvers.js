@@ -1,60 +1,92 @@
-const players = [
-  {
-    id: 'A',
-    name: 'A',
-    score: 12,
-    secret: 'secret',
-    units: [1, 2, 3],
-    invite: true,
-  },
-  { id: 'B', name: 'B', score: 5 },
-  { id: 'C', name: 'C', score: 15 },
-  { id: 'D', name: 'D', score: 3 },
-];
+import { Datastore } from '@google-cloud/datastore';
 
-const game = {
-  id: 'test',
-  nextTurn: 1000,
-  points: [3, 4, 5],
-};
+const datastore = new Datastore();
+
+async function listPlayers(_, args) {
+  const query = datastore.createQuery('Player');
+  const [entities] = await datastore.runQuery(query);
+  if (args.canTradeWith) {
+    return entities.filter(e => e[Datastore.KEY].id !== args.canInteractWith);
+  }
+  return entities;
+}
+
+async function registerPlayer(_, args) {
+  const key = datastore.key('Player');
+  const newPlayer = {
+    key,
+    data: {
+      name: args.name,
+      score: 0,
+      secret: args.secret,
+      units: [0, 0, 0],
+      history: [],
+    },
+  };
+  await datastore.save(newPlayer);
+  return { ...newPlayer.data, id: key.id };
+}
+
+async function getStatus(_, args) {
+  const taskKey = datastore.key(['Player', Number(args.player)]);
+  const [player] = await datastore.get(taskKey);
+  if (!player) throw new Error('Not found');
+  return {
+    id: 1,
+    points: [1, 2, 3],
+    player,
+  };
+}
+
+async function interact(_, { from, to, unit }) {
+  if (from === to) throw new Error('Can\'t interact with yourself');
+
+  const [fromPlayer] = await datastore.get(datastore.key(['Player', Number(from)]));
+  const [toPlayer] = await datastore.get(datastore.key(['Player', Number(to)]));
+  if (fromPlayer && toPlayer) {
+    if (toPlayer.history.includes(from)) throw new Error('Already interacted with this player');
+
+    if (toPlayer.pending && toPlayer.pending[0] === from && toPlayer.pending[1] === unit) {
+      fromPlayer.pending = null;
+      toPlayer.pending = null;
+      fromPlayer.history.push(to);
+      toPlayer.history.push(from);
+      fromPlayer.units[unit] += 1;
+      toPlayer.units[unit] += 1;
+    } else {
+      fromPlayer.pending = [toPlayer[Datastore.KEY].id, unit];
+    }
+    datastore.update(fromPlayer);
+    datastore.update(toPlayer);
+    return fromPlayer;
+  }
+  throw new Error('Players not found');
+}
+
+async function cancel(_, { from }) {
+  const [player] = await datastore.get(datastore.key(['Player', Number(from)]));
+  if (!player) throw new Error('Not found');
+  player.pending = null;
+  datastore.update(player);
+  return player;
+}
+
 
 const resolvers = {
   Query: {
-    players: () => players,
-    status: (_, { player }) => {
-      const playerEntity = players.find(p => p.id === player);
-      if (!playerEntity) throw new Error('Player Unknown');
-      return { ...game, player: playerEntity };
-    },
+    players: listPlayers,
+    status: getStatus,
   },
 
   Mutation: {
-    signup: (_, args) => {
-      const newPlayer = {
-        id: Math.random().toString(36).substring(2),
-        name: args.name,
-        score: 0,
-        secret: args.secret,
-        units: [0, 2, 5],
-        invite: false,
-      };
-      players.push(newPlayer);
-      return newPlayer;
-    },
+    signup: registerPlayer,
+    interact,
+    cancel,
+  },
 
-    interact: (_, args) => {
-      const playerEntity = players.find(p => p.id === args.from);
-      if (!playerEntity) throw new Error('Player Unknown');
-      console.log(args);
-      playerEntity.invite = true; return playerEntity;
-    },
-
-    cancel: (_, { from }) => {
-      const playerEntity = players.find(p => p.id === from);
-      if (!playerEntity) throw new Error('Player Unknown');
-      playerEntity.invite = false;
-      return playerEntity;
-    },
+  Player: {
+    id: (parent) => { if (parent.id) { return parent.id; } return parent[Datastore.KEY].id; },
+    invite: parent => (parent.pending != null),
   },
 };
 
