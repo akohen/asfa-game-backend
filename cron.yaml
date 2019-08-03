@@ -2,3 +2,6 @@ cron:
 - description: "Test game tick"
   url: /tick/test/asfa
   schedule: every 10 minutes from 11:00 to 11:30
+- description: "Local time Test game tick"
+  url: /tick/local/asfa
+  schedule: every 10 minutes from 13:20 to 13:30
