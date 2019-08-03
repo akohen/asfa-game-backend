@@ -1,4 +1,4 @@
 cron:
-- description: "Test game tick"
+- description: "Game tick"
   url: /tick/test/asfa
-  schedule: every 10 minutes from 11:30 to 11:40
+  schedule: every 45 minutes from 18:00 to 20:30
