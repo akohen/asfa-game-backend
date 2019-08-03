@@ -13,6 +13,7 @@ function getMax(units) {
 }
 
 export default async function (req, res, next) {
+  console.log('Running game tick');
   const transaction = datastore.transaction();
   const units = [0, 0, 0];
   try {
