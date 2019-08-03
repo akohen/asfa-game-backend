@@ -51,6 +51,7 @@ export default async function (req, res, next) {
       (game.points[1] - units[1] * unitWorth[1]) + game.pointsPerRound[1],
       (game.points[2] - units[2] * unitWorth[2]) + game.pointsPerRound[2],
     ];
+    game.nextRound = new Date(Date.now() + 1795000);
 
     transaction.update(players);
     transaction.update(game);
