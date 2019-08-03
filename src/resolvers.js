@@ -1,6 +1,6 @@
 import { Datastore } from '@google-cloud/datastore';
 
-const STARTING_POINTS = 0;
+const STARTING_POINTS = 10;
 const HIRING_COST = 1;
 const GAME_ID = 'test';
 const POINT_ADD = 1;

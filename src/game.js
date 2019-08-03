@@ -56,6 +56,7 @@ export default async function (req, res, next) {
     transaction.update(players);
     transaction.update(game);
     transaction.commit();
+    res.status(200);
     res.send('Tick OK');
   } catch (err) {
     transaction.rollback();
