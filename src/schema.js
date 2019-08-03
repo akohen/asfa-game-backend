@@ -12,6 +12,7 @@ type Player {
 type Game {
   id: String!
   points: [Int]
+  nextRound: String
   player: Player
 }
 
