@@ -1,12 +1,18 @@
 import { Datastore } from '@google-cloud/datastore';
 
+const STARTING_POINTS = 0;
+const HIRING_COST = 1;
+const GAME_ID = 'test';
+const POINT_ADD = 1;
+
 const datastore = new Datastore();
 
 async function listPlayers(_, args) {
   const query = datastore.createQuery('Player');
   const [entities] = await datastore.runQuery(query);
   if (args.canInteractWith) {
-    return entities.filter(e => e[Datastore.KEY].id !== args.canInteractWith);
+    return entities.filter(e => e[Datastore.KEY].id !== args.canInteractWith)
+      .filter(e => !e.history.includes(args.canInteractWith));
   }
   return entities;
 }
@@ -17,7 +23,7 @@ async function registerPlayer(_, args) {
     key,
     data: {
       name: args.name,
-      score: 0,
+      score: STARTING_POINTS,
       secret: args.secret,
       units: [0, 0, 0],
       history: [],
@@ -30,12 +36,9 @@ async function registerPlayer(_, args) {
 async function getStatus(_, args) {
   const taskKey = datastore.key(['Player', Number(args.player)]);
   const [player] = await datastore.get(taskKey);
+  const [game] = await datastore.get(datastore.key(['Game', GAME_ID]));
   if (!player) throw new Error('Not found');
-  return {
-    id: 1,
-    points: [1, 2, 3],
-    player,
-  };
+  return { ...game, id: game[Datastore.KEY].name, player };
 }
 
 async function interact(_, { from, to, unit }) {
@@ -53,6 +56,14 @@ async function interact(_, { from, to, unit }) {
       toPlayer.history.push(from);
       fromPlayer.units[unit] += 1;
       toPlayer.units[unit] += 1;
+      fromPlayer.score -= HIRING_COST;
+      toPlayer.score -= HIRING_COST;
+      const transaction = datastore.transaction();
+      const [game] = await transaction.get(datastore.key(['Game', GAME_ID]));
+      game.points[(unit + 1) % 3] += POINT_ADD;
+      game.points[(unit + 2) % 3] += POINT_ADD;
+      transaction.update(game);
+      transaction.commit();
     } else {
       fromPlayer.pending = [toPlayer[Datastore.KEY].id, unit];
     }
