@@ -59,6 +59,7 @@ async function interact(_, { from, to, unit }) {
       fromPlayer.score -= HIRING_COST;
       toPlayer.score -= HIRING_COST;
       const transaction = datastore.transaction();
+      await transaction.run();
       const [game] = await transaction.get(datastore.key(['Game', GAME_ID]));
       game.points[(unit + 1) % 3] += POINT_ADD;
       game.points[(unit + 2) % 3] += POINT_ADD;
@@ -81,7 +82,6 @@ async function cancel(_, { from }) {
   datastore.update(player);
   return player;
 }
-
 
 const resolvers = {
   Query: {
