@@ -13,7 +13,7 @@ function getMax(units) {
 }
 
 export default async function (req, res, next) {
-  console.log('Running game tick');
+  console.log(`Running game tick for ${req.params.game}`);
   const transaction = datastore.transaction();
   const units = [0, 0, 0];
   try {
@@ -32,9 +32,9 @@ export default async function (req, res, next) {
     });
 
     const unitWorth = [
-      Math.min(Math.floor(game.points[0] / units[0]), 10000),
-      Math.min(Math.floor(game.points[1] / units[1]), 10000),
-      Math.min(Math.floor(game.points[2] / units[2]), 10000),
+      (units[0] > 0) ? Math.floor(game.points[0] / units[0]) : 0,
+      (units[1] > 0) ? Math.floor(game.points[1] / units[1]) : 0,
+      (units[2] > 0) ? Math.floor(game.points[2] / units[2]) : 0,
     ];
 
     players.forEach((p) => {
