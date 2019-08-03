@@ -37,13 +37,13 @@ export default async function (req, res, next) {
     ];
 
     players.forEach((p) => {
-      p.units = [0, 0, 0];
       const max = getMax(p.units);
       if (max !== null) {
         p.score += p.units[max] * unitWorth[max];
       } else {
         p.score -= SCORE_PENALTY;
       }
+      p.units = [0, 0, 0];
     });
 
     game.points = [
