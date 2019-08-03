@@ -18,6 +18,12 @@ async function listPlayers(_, args) {
 }
 
 async function registerPlayer(_, args) {
+  const query = datastore.createQuery('Player')
+    .filter('name', '=', args.name)
+    .filter('secret', '=', args.secret);
+  const [player] = await datastore.runQuery(query);
+  if (player[0]) return player[0];
+
   const key = datastore.key('Player');
   const newPlayer = {
     key,
