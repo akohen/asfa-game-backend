@@ -29,9 +29,9 @@ export default async function (req, res, next) {
     });
 
     const unitWorth = [
-      game.points[0] / units[0],
-      game.points[1] / units[1],
-      game.points[2] / units[2],
+      (units[0] > 0) ? Math.floor(game.points[0] / units[0]) : 0,
+      (units[1] > 0) ? Math.floor(game.points[1] / units[1]) : 0,
+      (units[2] > 0) ? Math.floor(game.points[2] / units[2]) : 0,
     ];
 
     players.forEach((p) => {
