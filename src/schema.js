@@ -13,7 +13,13 @@ type Game {
   id: String!
   points: [Int]
   nextRound: String
+  lastRound: LastRound
   player: Player
+}
+
+type LastRound {
+  units: [Int]
+  unitsWorth: [Int]
 }
 
 type Query {
