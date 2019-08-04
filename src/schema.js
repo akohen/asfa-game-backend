@@ -19,7 +19,7 @@ type Game {
 
 type LastRound {
   units: [Int]
-  unitsWorth: [Int]
+  unitWorth: [Int]
 }
 
 type Query {
