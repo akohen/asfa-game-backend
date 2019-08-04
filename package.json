@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "GOOGLE_APPLICATION_CREDENTIALS=service.keys.json babel-watch src/index.js",
+    "dev": "GOOGLE_APPLICATION_CREDENTIALS=service.keys.json NODE_ENV=development babel-watch src/index.js",
     "start": "node dist/index.js",
     "build": "npx babel src -d dist --ignore 'src/**/*.test.js'",
     "test": "npx jest"

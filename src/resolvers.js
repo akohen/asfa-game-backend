@@ -2,13 +2,13 @@ import { Datastore } from '@google-cloud/datastore';
 
 const STARTING_POINTS = 10;
 const HIRING_COST = 1;
-const GAME_ID = 'test';
+const GAME_ID = (process.env.NODE_ENV === 'development') ? 'test' : 'game';
 const POINT_ADD = 1;
 
 const datastore = new Datastore();
 
 async function listPlayers(_, args) {
-  const query = datastore.createQuery('Player');
+  const query = datastore.createQuery('Player').hasAncestor(datastore.key(['Game', GAME_ID]));
   const [entities] = await datastore.runQuery(query);
   if (args.canInteractWith) {
     return entities.filter(e => e[Datastore.KEY].id !== args.canInteractWith)
@@ -20,11 +20,12 @@ async function listPlayers(_, args) {
 async function registerPlayer(_, args) {
   const query = datastore.createQuery('Player')
     .filter('name', '=', args.name)
-    .filter('secret', '=', args.secret);
+    .filter('secret', '=', args.secret)
+    .hasAncestor(datastore.key(['Game', GAME_ID]));
   const [player] = await datastore.runQuery(query);
   if (player[0]) return player[0];
 
-  const key = datastore.key('Player');
+  const key = datastore.key(['Game', GAME_ID, 'Player']);
   const newPlayer = {
     key,
     data: {
@@ -40,18 +41,19 @@ async function registerPlayer(_, args) {
 }
 
 async function getStatus(_, args) {
-  const taskKey = datastore.key(['Player', Number(args.player)]);
+  const taskKey = datastore.key(['Game', GAME_ID, 'Player', Number(args.player)]);
   const [player] = await datastore.get(taskKey);
   const [game] = await datastore.get(datastore.key(['Game', GAME_ID]));
-  if (!player) throw new Error('Not found');
+  if (!player) throw new Error('Player not found');
+  if (!game) throw new Error('Game not found');
   return { ...game, id: game[Datastore.KEY].name, player };
 }
 
 async function interact(_, { from, to, unit }) {
   if (from === to) throw new Error('Can\'t interact with yourself');
 
-  const [fromPlayer] = await datastore.get(datastore.key(['Player', Number(from)]));
-  const [toPlayer] = await datastore.get(datastore.key(['Player', Number(to)]));
+  const [fromPlayer] = await datastore.get(datastore.key(['Game', GAME_ID, 'Player', Number(from)]));
+  const [toPlayer] = await datastore.get(datastore.key(['Game', GAME_ID, 'Player', Number(to)]));
   if (fromPlayer && toPlayer) {
     if (toPlayer.history.includes(from)) throw new Error('Already interacted with this player');
 
@@ -82,7 +84,7 @@ async function interact(_, { from, to, unit }) {
 }
 
 async function cancel(_, { from }) {
-  const [player] = await datastore.get(datastore.key(['Player', Number(from)]));
+  const [player] = await datastore.get(datastore.key(['Game', GAME_ID, 'Player', Number(from)]));
   if (!player) throw new Error('Not found');
   player.pending = null;
   datastore.update(player);
