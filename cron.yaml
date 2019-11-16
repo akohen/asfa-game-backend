@@ -1,4 +1,5 @@
 cron:
 - description: "Game tick"
   url: /tick/test/asfa
-  schedule: every 45 minutes from 18:00 to 20:30
+  schedule: every 1 minute from 20:00 to 22:30
+  timezone: Europe/Paris
