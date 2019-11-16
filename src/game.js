@@ -61,6 +61,6 @@ export default async function (req, res, next) {
   } catch (err) {
     transaction.rollback();
     res.status(500);
-    res.send(err);
+    res.send(err.message);
   }
 }
