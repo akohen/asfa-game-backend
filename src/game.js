@@ -60,6 +60,7 @@ export default async function (req, res, next) {
     res.send({ units, unitWorth });
   } catch (err) {
     transaction.rollback();
-    next(err);
+    res.status(500);
+    res.send(err);
   }
 }
