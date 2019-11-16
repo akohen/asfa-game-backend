@@ -22,6 +22,7 @@ export default async function (req, res, next) {
 
     if (!game) throw new Error('Game not found');
     if (req.params.secret !== game.secret) throw new Error('Incorrect secret');
+    if (game.nextRound > Date.now()) throw new Error('Too early to finish the turn');
 
     players.forEach((p) => {
       const max = getMax(p.units);
